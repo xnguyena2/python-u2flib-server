@@ -98,6 +98,7 @@ class U2FServer(object):
         try:
             username = request.params.get('username', 'user')
             data = request.params.get('data', None)
+            log.info("have new request!"+data)
 
             if page == 'enroll':
                 return self.enroll(username)
