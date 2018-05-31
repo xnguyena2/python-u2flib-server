@@ -107,6 +107,8 @@ class U2FServer(object):
                 return self.sign(username)
             elif page == 'verify':
                 return self.verify(username, data)
+            elif page == 'checku2f':
+                return self.checku2f(username)
             else:
                 raise exc.HTTPNotFound()
         except Exception:
@@ -116,13 +118,23 @@ class U2FServer(object):
     def enroll(self, username):
         if username not in self.users:
             self.users[username] = {}
+        else:
+            return json.dumps(False)
 
         user = self.users[username]
         enroll = begin_registration(self.app_id, user.get('_u2f_devices_', []))
         user['_u2f_enroll_'] = enroll.json
         return json.dumps(enroll.data_for_client)
 
+    def checku2f(self, username):
+        if username not in self.users:
+            return json.dumps(False)
+        else:
+            return json.dumps(True)
+
     def bind(self, username, data):
+        if username not in self.users:
+            return json.dumps(False)
         user = self.users[username]
         enroll = user.pop('_u2f_enroll_')
         device, cert = complete_registration(enroll, data, [self.facet])
@@ -136,6 +148,8 @@ class U2FServer(object):
         return json.dumps(True)
 
     def sign(self, username):
+        if username not in self.users:
+            return json.dumps(False)
         user = self.users[username]
         challenge = begin_authentication(
             self.app_id, user.get('_u2f_devices_', []))
@@ -143,6 +157,8 @@ class U2FServer(object):
         return json.dumps(challenge.data_for_client)
 
     def verify(self, username, data):
+        if username not in self.users:
+            return json.dumps(False)
         user = self.users[username]
 
         challenge = user.pop('_u2f_challenge_')
