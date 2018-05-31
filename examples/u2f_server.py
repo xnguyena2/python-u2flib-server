@@ -118,8 +118,6 @@ class U2FServer(object):
     def enroll(self, username):
         if username not in self.users:
             self.users[username] = {}
-        else:
-            return json.dumps(False)
 
         user = self.users[username]
         enroll = begin_registration(self.app_id, user.get('_u2f_devices_', []))
